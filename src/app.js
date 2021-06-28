@@ -607,9 +607,11 @@ const gameUtils = (() => {
         </aside>
       </section>`;
   };
+
   const load = (() => {
     let _timerId;
     const $overlay = document.createElement('div');
+
     $overlay.className = 'overlay';
     $overlay.innerHTML = `
       <div class="loading">
@@ -642,11 +644,6 @@ const gameUtils = (() => {
       }
     };
   })();
-
-  const fetchGames = () => {
-    load.start();
-    setTimeout(load.stop, 2000);
-  };
 
   const oxygenTank = (() => {
     let _inhaleAmount;
@@ -687,8 +684,9 @@ const gameUtils = (() => {
       }, 100);
     };
 
-    const minusOxygen = () => {
-      _oxygen -= 5;
+    const applyPenalty = () => {
+      const PENALTY_NOT_CORRECT = -1 * 5;
+      _oxygen += PENALTY_NOT_CORRECT;
     };
 
     const init = (inhaleAmount, endCallback) => {
@@ -699,7 +697,7 @@ const gameUtils = (() => {
 
     return {
       init,
-      minusOxygen,
+      applyPenalty,
       startInhaleOxygen,
       stopInhaleOxygen
     };
@@ -707,7 +705,7 @@ const gameUtils = (() => {
   return {
     renderGameBackground,
     oxygenTank,
-    fetchGames
+    load
   };
 })();
 
@@ -1315,6 +1313,32 @@ const gamePage = (function () {
   let mode;
   let categoryId;
 
+  const fetchGame = () => {
+    gameUtils.load.start();
+    setTimeout(gameUtils.load.stop, 2000);
+  };
+
+  // START THE GAME: 게임을 시작한다.
+  const startGame = () => {
+    appendProblem();
+    gameUtils.oxygenTank.init(mode === 'HARD' ? 5 : 0.2, showResult);
+    gameUtils.oxygenTank.startInhaleOxygen();
+  };
+
+  // INITIALIZE STATES: 상태를 초기화한다.
+  const initializeStates = () => {
+    currentProblemIdx = 0;
+    problems = [
+      ...PROBLEMS.filter(problem => problem.categoryId === +categoryId)
+    ].map(problem => ({
+      ...problem,
+      completed: false,
+      correct: false
+    }));
+    gameEnd = false;
+  };
+
+  // append problem section to $body
   const appendProblem = () => {
     const SVG_CHARACTER_SRC = './src/img/jelly-fish.svg';
 
@@ -1485,38 +1509,58 @@ const gamePage = (function () {
     registerFormEvent($innerForm);
   };
 
+  // load game
+  const countdown = () => {
+    let count = 1;
+
+    const timerId = setInterval(() => {
+      if (count === 0) {
+        clearInterval(timerId);
+        getReady();
+        return;
+      }
+      count--;
+    }, 1000);
+  };
+
+  // initial game setting
+  const initializeGame = (_mode, _categoryId) => {
+    mode = _mode;
+    categoryId = +_categoryId;
+    initializeStates();
+
+    gameUtils.renderGameBackground();
+    fetchGame();
+
+    $body.className = 'game';
+    const $defaultProblemsSection = document.createElement('section');
+    $defaultProblemsSection.className = 'problems';
+    $body.appendChild($defaultProblemsSection);
+
+    countdown();
+  };
+
+  // show result
   const showResult = () => {
     if (gameEnd) return;
 
-    /*
-    @returns {
-      correctProblemCnt: number,
-      totalProblemLength: number,
-      stage: {
-        id: number,
-        cleared: boolean
-      }
-    }
-    */
-    const _getComprehensiveResult = () => {
-      const _correct = problems.filter(problem => problem.correct).length;
-      const _totalLength = problems.length;
-
-      return {
-        correctProblemCnt: _correct,
-        totalProblemLength: _totalLength,
-        stage: {
-          id: categoryId,
-          cleared: _correct / _totalLength > 0.5
-        }
-      };
-    };
-
     gameEnd = true;
     gameUtils.oxygenTank.stopInhaleOxygen();
-    const { correctProblemCnt, totalProblemLength, stage } =
-      _getComprehensiveResult();
-    if (stage.cleared) user.stageCleared.add(stage.id);
+
+    const _correct = problems.filter(problem => problem.correct).length;
+    const _totalLength = problems.length;
+    const _isCleared = _correct / _totalLength > 0.5;
+
+    const { correctProblemCnt, totalProblemLength, stage } = {
+      correctProblemCnt: _correct,
+      totalProblemLength: _totalLength,
+      stage: {
+        id: categoryId,
+        cleared: _isCleared
+      }
+    };
+
+    if (_isCleared) user.stageCleared.add(stage.id);
 
     const $resultSection = document.createElement('section');
     $resultSection.className = 'results';
@@ -1559,6 +1603,7 @@ const gamePage = (function () {
 
   const getReady = () => {
     let count = 3;
+
     const $defaultProblemsSection = $body.querySelector('.problems');
     const $countdownDiv = document.createElement('div');
     $countdownDiv.className = 'countdown';
@@ -1571,6 +1616,7 @@ const gamePage = (function () {
         startGame();
         return;
       }
+
       $countdownDiv.textContent = count === 0 ? 'GO DIVE!' : count;
       count--;
     }, 1000);
@@ -1618,40 +1664,40 @@ const gamePage = (function () {
     const { dataset } = e.target;
     const problemId = +dataset.problemId;
     const problemType = +dataset.problemType;
-    let userAnswers = [];
 
-    if (problemType === PROBLEM_TYPES.SHORT_ANSWER) {
-      const $userAnswer = e.target.querySelector('input[type=text]');
-      if ($userAnswer) userAnswers = [$userAnswer.value];
-    } else if (
-      problemType === PROBLEM_TYPES.MULTIPLE_QUESTION_MULTIPLE_ANSWER
-    ) {
-      const $userAnswers = [
-        ...e.target.querySelectorAll('input[type=checkbox]:checked')
-      ];
-      if ($userAnswers) {
-        userAnswers = [
-          ...$userAnswers.map($answer => $answer.dataset.optionId)
+    const getUserAnswer = (() => {
+      let userAnswers = [];
+      if (problemType === PROBLEM_TYPES.SHORT) {
+        const $userAnswer = e.target.querySelector('input[type=text]');
+        if ($userAnswer) userAnswers = [$userAnswer.value];
+      } else if (problemType === PROBLEM_TYPES.MULTIPLE_MULTIPLE) {
+        const $userAnswers = [
+          ...e.target.querySelectorAll('input[type=checkbox]:checked')
         ];
+        if ($userAnswers) {
+          userAnswers = [
+            ...$userAnswers.map($answer => $answer.dataset.optionId)
+          ];
+        }
+      } else {
+        const $userAnswer = e.target.querySelector('input[type=radio]:checked');
+        if ($userAnswer) userAnswers = [...$userAnswer.dataset.optionId];
       }
-    } else {
-      const $userAnswer = e.target.querySelector('input[type=radio]:checked');
-      if ($userAnswer) userAnswers = [...$userAnswer.dataset.optionId];
-    }
+      return userAnswers;
+    })();
 
     const answers = [
       ...ANSWERS.find(answer => answer.problemId === problemId).answers
     ];
-
     let isCorrect = true;
-    if (userAnswers.length !== answers.length) {
+    if (getUserAnswer.length !== answers.length) {
       isCorrect = false;
     }
     answers.sort();
-    userAnswers.sort();
+    getUserAnswer.sort();
 
     for (let i = 0; i < answers.length; i++) {
-      if (answers[i] !== userAnswers[i]) {
+      if (answers[i] !== getUserAnswer[i]) {
         isCorrect = false;
         break;
       }
@@ -1663,7 +1709,7 @@ const gamePage = (function () {
       problems.find(problem => problem.id === problemId).correct = true;
       return;
     }
-    gameUtils.oxygenTank.minusOxygen();
+    gameUtils.oxygenTank.applyPenalty();
   };
 
   const moveProblem = (() => ({
