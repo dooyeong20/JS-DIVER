@@ -1,0 +1,268 @@
+body.game {
+  .problems {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    font-size: 2em;
+    color: #fff;
+  }
+
+  .countdown {
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translate3d(-50%, 0, 0);
+    opacity: 1;
+    animation: countingBlink 1s ease 1s infinite;
+    font-size: 4em;
+  }
+
+  @keyframes countingBlink {
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes showup {
+    to {
+      opacity: 1;
+    }
+  }
+
+  .problem {
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    padding: 5em;
+    animation: showup 0.6s forwards ease;
+    display: flex;
+    justify-content: center;
+
+    &.completed {
+      display: none;
+    }
+  }
+
+  .form {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-content: space-around;
+    justify-content: center;
+
+    & > fieldset {
+      height: 100%;
+      width: 100%;
+      text-align: center;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      align-items: center;
+
+      & > legend {
+        font-size: 1.2em;
+        word-break: keep-all;
+      }
+
+      & > pre {
+        text-align: start;
+        color: #333;
+        white-space: pre-line;
+        tab-size: 4;
+
+        & > code {
+          font-size: 0.8;
+        }
+      }
+    }
+
+    &__selections {
+      height: auto;
+      width: 100%;
+      display: flex;
+      justify-content: space-evenly;
+    }
+
+    &__selection:focus-within {
+      background-color: #b7e2a8;
+    }
+
+    &__selection {
+      background-color: #f0f0f0;
+      border-radius: 20px;
+      opacity: 0.8;
+      color: #222;
+      position: relative;
+      box-sizing: border-box;
+
+      & > .jelly-fish,
+      & > input,
+      & > label {
+        display: block;
+      }
+
+      & > .jelly-fish {
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        z-index: 1;
+        transform: rotate(45deg);
+      }
+
+      .sub {
+        font-size: 1em;
+        margin-top: 1em;
+      }
+
+      & > label {
+        width: calc(250px + 2em);
+        height: 100%;
+        max-height: 350px;
+        overflow-y: scroll;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 20px;
+        padding: 20px 0;
+        word-break: keep-all;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+        &::-webkit-scrollbar {
+          display: none;
+        }
+      }
+
+      & > input[type='radio']:checked,
+      & > input[type='checkbox']:checked {
+        & + label {
+          background-color: #b7e2a8;
+          font-size: 1em;
+        }
+      }
+    }
+
+    &__selection:hover {
+      background-color: #b7e2a8;
+      transform: scale(103%);
+    }
+
+    .fly-slightly {
+      position: relative;
+      top: -70px;
+    }
+
+    .btn {
+      position: relative;
+      cursor: pointer;
+      text-align: center;
+      background: #cc5c5c;
+      border-radius: 8px;
+      font-size: 1.5rem;
+      font-weight: 800;
+      line-height: 50px;
+      font-family: arial;
+      color: #f0f0f0;
+      box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.3);
+      width: 200px;
+      height: 70px;
+    }
+  }
+
+  .input__answer {
+    position: relative;
+    height: 70px;
+    margin: 0 auto;
+    background-color: #f0f0f0;
+    border-radius: 20px;
+
+    & > img {
+      position: absolute;
+      top: -50px;
+      left: -50px;
+      transform: rotate(-45deg);
+    }
+  }
+
+  .input__short-type {
+    color: #222;
+    border: none;
+    font-size: 1.2em;
+    background-color: transparent;
+    height: 100%;
+    width: 100%;
+    border-radius: 20px;
+    text-align: center;
+
+    &::placeholder {
+      color: #222;
+    }
+  }
+
+  .overlay {
+    overflow: auto;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #000;
+    opacity: 0;
+    animation: overlayDarker 1s forwards linear;
+  }
+
+  @keyframes overlayDarker {
+    to {
+      opacity: 0.9;
+    }
+  }
+
+  @keyframes resultPopupSlowly {
+    to {
+      transform: translate3d(-50%, -50%, 0);
+    }
+  }
+
+  .result {
+    position: absolute;
+    border-radius: 20px;
+    top: 50%;
+    left: 50%;
+    transform: translate3d(-50%, 150%, 0);
+    width: 600px;
+    height: 500px;
+    transition: width 0.5s;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+    animation: resultPopupSlowly 0.8s forwards 1s ease;
+    z-index: 4;
+
+    & > .user-name {
+      font-size: 50px;
+    }
+
+    & > .user-score {
+      font-size: 4em;
+      font-weight: 700;
+    }
+
+    .close {
+      cursor: pointer;
+      text-align: center;
+      background: #53c100;
+      border-radius: 8px;
+      font-size: 1.5rem;
+      font-weight: 800;
+      line-height: 50px;
+      font-family: arial;
+      color: #f0f0f0;
+      box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.3);
+      width: 200px;
+      height: 70px;
+      border: none;
+    }
+  }
+}
