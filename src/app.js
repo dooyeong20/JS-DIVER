@@ -1583,24 +1583,6 @@ const gamePage = (function () {
     });
   };
 
-  const startGame = () => {
-    appendProblem();
-    gameUtils.oxygenTank.init(mode === 'HARD' ? 5 : 0.2, showResult);
-    gameUtils.oxygenTank.startInhaleOxygen();
-  };
-
-  const initializeStates = () => {
-    currentProblemIdx = 0;
-    problems = [
-      ...PROBLEMS.filter(problem => problem.categoryId === +categoryId)
-    ].map(problem => ({
-      ...problem,
-      completed: false,
-      correct: false
-    }));
-    gameEnd = false;
-  };
-
   const getReady = () => {
     let count = 3;
 
@@ -1634,19 +1616,6 @@ const gamePage = (function () {
     }, 1000);
   };
 
-  const initializeGame = (_mode, _categoryId) => {
-    mode = _mode;
-    categoryId = +_categoryId;
-    $body.className = 'game';
-    gameUtils.renderGameBackground();
-    gameUtils.fetchGames();
-    accessibility.display();
-    initializeStates();
-    const $defaultProblemsSection = document.createElement('section');
-    $defaultProblemsSection.className = 'problems';
-    $body.appendChild($defaultProblemsSection);
-    loadGame();
-  };
 
   const hideExistingProblem = () => {
     const $allProblems = [...$body.querySelectorAll('.problem')];
