@@ -8,17 +8,17 @@
 ### 1.1 초기 화면
 
 <div>
-  <img src="./images/1.png" width="400"/>
-  <img src="./images/2.png" width="400"/>
-  <img src="./images/3.png" width="400"/>
+  <img src="./images/1.png" width="600"/>
+  <img src="./images/2.png" width="600"/>
+  <img src="./images/3.png" width="600"/>
 </div>
 
 ### 1.2 게임 화면
 
 <div>
-  <img src="./images/4.png" width="400"/>
-  <img src="./images/6.png" width="400"/>
-  <img src="./images/7.png" width="400"/>
+  <img src="./images/4.png" width="600"/>
+  <img src="./images/6.png" width="600"/>
+  <img src="./images/7.png" width="600"/>
 </div>
 
 ## 2. Detail
